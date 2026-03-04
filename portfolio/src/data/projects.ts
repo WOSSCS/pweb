@@ -10,23 +10,23 @@ export interface Project {
 
 export const PROJECTS: Project[] = [
   {
-    title: 'Luminous',
+    title: 'Vertex',
     description:
-      'A real-time collaborative whiteboard with infinite canvas, hand-drawn recognition, and WebSocket sync. Built for teams who think visually.',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop',
-    tags: ['React', 'Node.js', 'WebSocket', 'Canvas API'],
-    liveUrl: '#',
-    repoUrl: '#',
+      'A centralized platform for high school students to find, apply to, and track volunteer opportunities',
+    image: '../../pictures/websites/5q1dcsong1.jpg',
+    tags: ['Next.js', 'Three.js', 'Tailwind CSS', "Supabase"],
+    liveUrl: 'https://fblc-26.vercel.app/',
+    repoUrl: 'https://github.com/B-Eddie/fblc-26',
     theme: 0,
   },
   {
-    title: 'Nocturn',
+    title: 'Onyx',
     description:
-      'An ambient music generator that creates evolving soundscapes from weather data. API-driven audio synthesis meets generative art.',
-    image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&h=400&fit=crop',
-    tags: ['TypeScript', 'Web Audio API', 'Three.js', 'REST'],
-    liveUrl: '#',
-    repoUrl: '#',
+      'A indie platform made at a Shanghai game jam for high school students. Built with Unity',
+    image: '../../pictures/websites/onyx.png',
+    tags: ['Unity', 'C#'],
+    liveUrl: 'https://stony-su.itch.io/onyx',
+    repoUrl: 'https://github.com/stony-su/onyx',
     theme: 1,
   },
   {
@@ -40,13 +40,13 @@ export const PROJECTS: Project[] = [
     theme: 2,
   },
   {
-    title: 'Drift',
+    title: 'ShadBus',
     description:
-      'A travel journaling platform with interactive maps, photo timelines, and AI-suggested itineraries. Wander intentionally.',
+      'Calgary Mobile Grocery Bus Tracker - A proof of concept app for Calgary’s mobile grocery bus business, built with React and Tailwind CSS.',
     image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop',
-    tags: ['Vue.js', 'Mapbox', 'Supabase', 'OpenAI'],
-    liveUrl: '#',
-    repoUrl: '#',
+    tags: ['React', 'Tailwind CSS', 'Firebase', 'Google Translate API',   ],
+    liveUrl: 'https://shadbusv2.vercel.app/',
+    repoUrl: 'https://github.com/stony-su/shadbusv2',
     theme: 3,
   },
   {

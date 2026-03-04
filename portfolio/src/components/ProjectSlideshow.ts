@@ -80,11 +80,31 @@ export class ProjectSlideshow {
   }
 
   private setupWheelRedirect(): void {
+    let isScrolling = false;
+
     this.slideshowEl.addEventListener('wheel', (e: WheelEvent) => {
-      // If user scrolls vertically, redirect to horizontal
+      // If user scrolls vertically, navigate to the next/previous slide
       if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
         e.preventDefault();
-        this.slideshowEl.scrollLeft += e.deltaY;
+
+        if (isScrolling) return;
+        isScrolling = true;
+
+        const slides = this.slideshowEl.querySelectorAll('.slide');
+        const slideWidth = window.innerWidth;
+        const currentIndex = Math.round(this.slideshowEl.scrollLeft / slideWidth);
+        const direction = e.deltaY > 0 ? 1 : -1;
+        const nextIndex = Math.max(0, Math.min(slides.length - 1, currentIndex + direction));
+
+        this.slideshowEl.scrollTo({
+          left: nextIndex * slideWidth,
+          behavior: 'smooth',
+        });
+
+        // Debounce to prevent rapid-fire slide changes
+        setTimeout(() => {
+          isScrolling = false;
+        }, 600);
       }
     }, { passive: false });
   }

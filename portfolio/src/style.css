@@ -34,6 +34,15 @@ body {
   will-change: opacity, transform, filter;
 }
 
+/* Sticker pop-in base */
+.sticker {
+  will-change: transform, opacity;
+}
+
+.sticker img {
+  transition: box-shadow 0.3s ease;
+}
+
 /* Rise up */
 .intro-line-rise {
   transform: translateY(30px);
