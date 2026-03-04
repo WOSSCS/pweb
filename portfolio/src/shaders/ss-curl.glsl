@@ -39,7 +39,7 @@ void main(){
   float dist = length(toCenter);
   if (dist > 0.001) {
     float repel = smoothstep(exclusionRadius, 0.0, dist);
-    vel += normalize(toCenter) * repel * 0.004 * timeScale;
+    vel += normalize(toCenter) * repel * 0.0007 * timeScale;
   }
 
   // Mouse attraction
@@ -48,7 +48,7 @@ void main(){
     float mDist = length(toMouse);
     float influence = 1.0 / (1.0 + mDist * mDist * 8.0);
     vec3 mouseDir = normalize(toMouse);
-    vel += mouseDir * mouseForce * influence * 0.002 * timeScale;
+    vel += mouseDir * mouseForce * influence * 0.0045 * timeScale;
   }
 
   vel *= pow(.97, timeScale); // dampening
