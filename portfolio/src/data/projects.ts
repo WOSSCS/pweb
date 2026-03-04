@@ -37,7 +37,7 @@ export const PROJECTS: Project[] = [
     image: '../../pictures/websites/barcode-food-expiry.jpg',
     video: '/pictures/websites/Screen_Recording_Jun_6_2025.mp4',
     tags: ['Node.js', 'Expo Cli', 'OpenAI', 'Phone Camera'],
-    liveUrl: '#',
+    liveUrl: '',
     repoUrl: 'https://github.com/B-Eddie/barcodescan',
     theme: 2,
   },
@@ -64,7 +64,7 @@ export const PROJECTS: Project[] = [
   {
     title: 'Turntable',
     description:
-      'Three.js Interactive Turntable',
+      'Three.js Interactive Turntable. Made with Three.js. Drag the vinyl into the table and watch it spin!',
     image: '../../pictures/websites/turntable.png',
     tags: ['Three.js'],
     liveUrl: 'https://vinyl-turntable.vercel.app/',
