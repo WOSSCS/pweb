@@ -295,6 +295,7 @@ export class ProjectSlideshow {
 
   private setupThemeObserver(): void {
     const slides = this.slideshowEl.querySelectorAll('.slide');
+    const titleSlide = slides[0];
     const closingSlide = slides[slides.length - 1];
 
     const observer = new IntersectionObserver(
@@ -304,8 +305,8 @@ export class ProjectSlideshow {
             const theme = parseInt(entry.target.getAttribute('data-theme') || '0');
             this.scene.setColorMode(theme);
 
-            // Enable attract mode only on the closing "Let's Talk" slide
-            this.scene.setAttract(entry.target === closingSlide);
+            // Enable attract mode on all slides
+            this.scene.setAttract(true);
           }
         });
       },

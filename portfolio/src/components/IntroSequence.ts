@@ -101,8 +101,6 @@ const THEME_BORDER: Record<number, string> = {
 /* ── Timing ── */
 
 const FANOUT_DURATION = 2000;
-const LINE_DISPLAY_TIME = 2800;
-const LINE_FADE_TIME = 600;
 
 /* ══════════════════════════════════════════════════════════ */
 
@@ -112,23 +110,46 @@ export class IntroSequence {
   private onComplete: () => void;
   private lineElements: HTMLElement[] = [];
   private stickerContainers: (HTMLElement | null)[] = [];
+  private scrollSpacer: HTMLElement | null = null;
+  private overlay: HTMLElement | null = null;
+  private scrollHint: HTMLElement | null = null;
+  private activeIndex = -1;
+  private completed = false;
+  private boundScrollHandler: () => void;
 
   constructor(container: HTMLElement, scene: ParticleScene, onComplete: () => void) {
     this.container = container;
     this.scene = scene;
     this.onComplete = onComplete;
+    this.boundScrollHandler = this.handleScroll.bind(this);
   }
 
   /* ── Public ── */
 
   start(): void {
+    /* Enable scrolling on body for the intro */
+    document.body.style.overflow = 'auto';
+    document.body.style.overflowX = 'hidden';
+
+    /* Create scroll spacer — each line gets 100vh of scroll space, plus an extra section to scroll out */
+    const spacer = document.createElement('div');
+    spacer.id = 'intro-scroll-spacer';
+    spacer.style.width = '100%';
+    spacer.style.height = `${(INTRO_LINES.length + 1) * 100}vh`;
+    spacer.style.position = 'relative';
+    spacer.style.zIndex = '0';
+    spacer.style.pointerEvents = 'none';
+    this.container.appendChild(spacer);
+    this.scrollSpacer = spacer;
+
     const overlay = document.createElement('div');
     overlay.id = 'intro-overlay';
     overlay.className = 'fixed inset-0 z-10 flex items-center justify-center pointer-events-none';
     overlay.style.overflow = 'hidden';
     this.container.appendChild(overlay);
+    this.overlay = overlay;
 
-    INTRO_LINES.forEach((line) => {
+    INTRO_LINES.forEach((line, i) => {
       /* — Text element — */
       const el = document.createElement('div');
       el.className = `intro-line absolute opacity-0 text-center px-8 max-w-4xl ${line.className}`;
@@ -136,7 +157,14 @@ export class IntroSequence {
       el.style.zIndex = '10';
 
       const spanClass = line.fontStyle === 'display' ? 'font-display italic' : 'font-body';
-      el.innerHTML = `<span class="${spanClass}">${line.text}</span>`;
+      let html = `<span class="${spanClass}">${line.text}</span>`;
+
+      /* Add scroll hint below the first line */
+      if (i === 0) {
+        html += `<div class="scroll-hint" style="margin-top: 1.2rem; font-size: 0.95rem; opacity: 0.5; font-family: var(--font-body); letter-spacing: 0.08em; font-style: normal;">scroll to continue</div>`;
+      }
+
+      el.innerHTML = html;
 
       overlay.appendChild(el);
       this.lineElements.push(el);
@@ -192,13 +220,17 @@ export class IntroSequence {
     });
 
     this.applySizing();
-    setTimeout(() => this.playSequence(0), FANOUT_DURATION);
+
+    /* Show the first line after the fanout, then listen to scroll */
+    setTimeout(() => {
+      this.showLine(0);
+      window.addEventListener('scroll', this.boundScrollHandler, { passive: true });
+    }, FANOUT_DURATION);
   }
 
   /* ── Sizing per line ── */
 
   private applySizing(): void {
-    // All sentences use the same font size
     const baseSize = 'text-5xl md:text-7xl lg:text-8xl tracking-tight';
 
     this.lineElements.forEach((el) => {
@@ -206,40 +238,55 @@ export class IntroSequence {
     });
   }
 
-  /* ── Sequence Playback ── */
+  /* ── Scroll Handler ── */
 
-  private playSequence(index: number): void {
-    if (index >= INTRO_LINES.length) {
-      // All lines done — fade out overlay and trigger completion
-      setTimeout(() => {
-        const overlay = document.getElementById('intro-overlay');
-        if (overlay) {
-          overlay.style.transition = 'opacity 0.8s ease-out';
-          overlay.style.opacity = '0';
-          setTimeout(() => {
-            overlay.remove();
-            this.onComplete();
-          }, 800);
-        }
-      }, 400);
+  private handleScroll(): void {
+    if (this.completed) return;
+
+    const scrollY = window.scrollY;
+    const vh = window.innerHeight;
+
+    // Each line occupies one viewport height of scroll distance
+    const rawIndex = Math.floor(scrollY / vh);
+    const targetIndex = Math.min(rawIndex, INTRO_LINES.length - 1);
+
+    // Past the last section → complete
+    if (scrollY >= INTRO_LINES.length * vh) {
+      this.completeIntro();
       return;
     }
 
+    if (targetIndex !== this.activeIndex) {
+      // Hide current line
+      if (this.activeIndex >= 0) {
+        this.hideLine(this.activeIndex);
+      }
+      // Show new line
+      this.showLine(targetIndex);
+    }
+  }
+
+  /* ── Show / Hide a line ── */
+
+  private showLine(index: number): void {
+    if (index < 0 || index >= INTRO_LINES.length) return;
+
+    this.activeIndex = index;
     const line = INTRO_LINES[index];
     const el = this.lineElements[index];
     const sc = this.stickerContainers[index];
 
-    // Shift particle background theme
     this.scene.setColorMode(line.theme);
 
     requestAnimationFrame(() => {
       this.applyThemeColor(el, line.theme);
 
-      // Show text
+      // Reset exit state if re-entering
+      el.classList.remove('intro-line-exit');
+
       el.classList.add('intro-line-active');
       el.style.opacity = '1';
 
-      // Show stickers (pop in with stagger via CSS transition-delay)
       if (sc) {
         sc.style.opacity = '1';
         const stickers = sc.querySelectorAll<HTMLElement>('.sticker');
@@ -250,26 +297,54 @@ export class IntroSequence {
         });
       }
     });
+  }
 
-    // After display time → exit
-    setTimeout(() => {
-      el.classList.remove('intro-line-active');
-      el.classList.add('intro-line-exit');
-      el.style.opacity = '0';
+  private hideLine(index: number): void {
+    if (index < 0 || index >= INTRO_LINES.length) return;
 
-      // Hide stickers
-      if (sc) {
-        sc.style.opacity = '0';
-        const stickers = sc.querySelectorAll<HTMLElement>('.sticker');
-        stickers.forEach((s) => {
-          const rot = s.dataset.rotation ?? '0';
-          s.style.transform = `rotate(${rot}deg) scale(0)`;
-          s.style.opacity = '0';
-        });
-      }
+    const el = this.lineElements[index];
+    const sc = this.stickerContainers[index];
 
-      setTimeout(() => this.playSequence(index + 1), LINE_FADE_TIME);
-    }, LINE_DISPLAY_TIME);
+    el.classList.remove('intro-line-active');
+    el.classList.add('intro-line-exit');
+    el.style.opacity = '0';
+
+    if (sc) {
+      sc.style.opacity = '0';
+      const stickers = sc.querySelectorAll<HTMLElement>('.sticker');
+      stickers.forEach((s) => {
+        const rot = s.dataset.rotation ?? '0';
+        s.style.transform = `rotate(${rot}deg) scale(0)`;
+        s.style.opacity = '0';
+      });
+    }
+  }
+
+  /* ── Complete Intro ── */
+
+  private completeIntro(): void {
+    if (this.completed) return;
+    this.completed = true;
+
+    window.removeEventListener('scroll', this.boundScrollHandler);
+
+    // Hide active line
+    if (this.activeIndex >= 0) {
+      this.hideLine(this.activeIndex);
+    }
+
+    // Fade out overlay, remove spacer, lock scroll, call onComplete
+    if (this.overlay) {
+      this.overlay.style.transition = 'opacity 0.8s ease-out';
+      this.overlay.style.opacity = '0';
+      setTimeout(() => {
+        this.overlay?.remove();
+        this.scrollSpacer?.remove();
+        window.scrollTo(0, 0);
+        document.body.style.overflow = 'hidden';
+        this.onComplete();
+      }, 800);
+    }
   }
 
   /* ── Theme Color ── */

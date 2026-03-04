@@ -143,6 +143,25 @@ body {
   color: #e0e7ff;
 }
 
+/* ── Scroll hint subtle bounce ── */
+.scroll-hint {
+  animation: scrollHintBounce 2s ease-in-out infinite;
+}
+
+@keyframes scrollHintBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+/* Hide scrollbar during intro */
+body::-webkit-scrollbar {
+  display: none;
+}
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* ── Video Scrub Bar ── */
 
 .video-scrub {
